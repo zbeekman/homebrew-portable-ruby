@@ -25,9 +25,12 @@ BOTTLE_ARGS = %w[
 ARGV.named.each do |name|
   name = "portable-#{name}" unless name.start_with? "portable-"
   begin
+    deps = Utils.popen_read("brew", "deps", "--include-build", "-n", name).split("\n")
+    deps.each do |dep|
+      safe_system "brew", "install", "--build-from-source", dep
+    end
     safe_system "brew", "install", "--build-bottle", name
     unless ARGV.include? "--no-uninstall-deps"
-      deps = Utils.popen_read("brew", "deps", "--include-build", name).split("\n")
       deps.each do |dep|
         safe_system "brew", "uninstall", "--force", "--ignore-dependencies", dep
       end
